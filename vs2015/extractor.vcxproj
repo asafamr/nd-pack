@@ -160,8 +160,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\extractor\nd_archive_reader_fd.cpp" />
-    <ClCompile Include="..\..\extractor\nd_extractor.cpp" />
+    <ClCompile Include="..\extractor\nd_archive_reader_fd.cpp" />
+    <ClCompile Include="..\extractor\nd_extractor.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

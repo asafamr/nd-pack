@@ -1,7 +1,7 @@
 #include "packer.h"
 #include "resource.h"
 #include "../common/duckpack.h"
-#include "peml.h"
+#include "../peml/peml/include/peml.h"
 
 #include <fstream>
 //#include <iostream>

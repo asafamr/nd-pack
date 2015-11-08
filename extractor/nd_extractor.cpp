@@ -56,8 +56,8 @@ struct imemstream : virtual membuf, std::istream {
 	}
 };
 
-#pragma comment(lib,"../../common/lib_archive/lib/libarchive_" LIB_SUFFIX)
-#pragma comment(lib,"../../common/zlib/lib/zlib_" LIB_SUFFIX)
+#pragma comment(lib,"../common/lib_archive/lib/libarchive_" LIB_SUFFIX)
+#pragma comment(lib,"../common/zlib/lib/zlib_" LIB_SUFFIX)
 
 
 //#pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup")

@@ -46,6 +46,7 @@ bin
 *.sdf
 *.user
 *.filters
+*.opensdf
 vs2015/.vs
 vs2015/Debug
 vs2015/Release

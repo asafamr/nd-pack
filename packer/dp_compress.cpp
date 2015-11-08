@@ -13,8 +13,8 @@ extern "C"
 #include "../common/lib_archive/include/archive_entry.h"
 }
 
-#pragma comment(lib,"../../common/lib_archive/lib/libarchive_" LIB_SUFFIX)
-#pragma comment(lib,"../../common/zlib/lib/zlib_" LIB_SUFFIX)
+#pragma comment(lib,"../common/lib_archive/lib/libarchive_" LIB_SUFFIX)
+#pragma comment(lib,"../common/zlib/lib/zlib_" LIB_SUFFIX)
  
 
 //#pragma comment(lib,"shlwapi.lib")
