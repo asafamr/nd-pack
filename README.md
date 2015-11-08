@@ -1,6 +1,6 @@
-# NDPack
+# ND-Pack
 
-NDPack creates self extracting executables
+ND-Pack creates self extracting executables
 
 # Usage
 
