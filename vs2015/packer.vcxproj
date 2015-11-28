@@ -94,7 +94,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>$(ProjectDir)..\..\bin\$(PlatformShortName)\$(TargetFileName)</OutputFile>
+      <OutputFile>$(ProjectDir)..\bin\$(PlatformShortName)\$(TargetFileName)</OutputFile>
       <AdditionalLibraryDirectories>C:\ws\boost_1_59_0\bin.v2\libs\filesystem\build\msvc-14.0\debug\link-static\threading-multi;C:\ws\boost_1_59_0\bin.v2\libs\system\build\msvc-14.0\debug\link-static\threading-multi;C:\ws\boost_1_59_0\bin.v2\libs\program_options\build\msvc-14.0\debug\link-static\threading-multi;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -170,11 +170,13 @@
     <ClCompile Include="..\packer\dp_compress.cpp" />
     <ClCompile Include="..\packer\dp_win.cpp" />
     <ClCompile Include="..\packer\packer.cpp" />
+    <ClCompile Include="..\peml\peml_utils\peml_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\duckpack.h" />
     <ClInclude Include="..\packer\packer.h" />
     <ClInclude Include="..\packer\resource.h" />
+    <ClInclude Include="..\peml\peml_utils\peml_utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="packer.rc">
@@ -182,12 +184,11 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\extractor\extractor.vcxproj">
-      <Project>{4aa62a32-d56f-4de4-9ca7-ff2d9581e921}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\peml.vcxproj">
+    <ProjectReference Include="..\peml\vs2015\peml.vcxproj">
       <Project>{030423e4-81b2-4490-9050-3aea1162f6e1}</Project>
-      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+    <ProjectReference Include="extractor.vcxproj">
+      <Project>{4aa62a32-d56f-4de4-9ca7-ff2d9581e921}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

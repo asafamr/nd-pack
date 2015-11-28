@@ -50,13 +50,14 @@ bool pack(Config &config)
 		{
 			DeleteFile(zipPathBlock2.c_str());
 		}
-		return 1;
+		return true;
 	}
 	DeleteFile(zipPathBlock1.c_str());
 	if (!zipPathBlock2.empty())
 	{
 		DeleteFile(zipPathBlock2.c_str());
 	}
+	return true;
 }
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -86,13 +87,13 @@ int _tmain(int argc, _TCHAR* argv[])
 		{
 			config.resources.manifest =
 				L"<assembly xmlns = \"urn:schemas-microsoft-com:asm.v1\" manifestVersion=\"1.0\">\r\n"
-				L"<trustInfo xmlns=\"urn:schemas-microsoft-com:asm.v3\">\r\n"
-				L"<security>\r\n"
-				L"<requestedPrivileges>\r\n"
-				L"<requestedExecutionLevel level=\"requireAdministrator\" uiAccess=\"false\"></requestedExecutionLevel>\r\n"
-				L"</requestedPrivileges>\r\n"
-				L"</security>\r\n"
-				L"</trustInfo>\r\n"
+				L"  <trustInfo xmlns=\"urn:schemas-microsoft-com:asm.v3\">\r\n"
+				L"    <security>\r\n"
+				L"      <requestedPrivileges>\r\n"
+				L"      <requestedExecutionLevel level=\"requireAdministrator\" uiAccess=\"false\"></requestedExecutionLevel>\r\n"
+				L"      </requestedPrivileges>\r\n"
+				L"    </security>\r\n"
+				L"  </trustInfo>\r\n"
 				L"</assembly>";
 		}
 	if (!pack(config))

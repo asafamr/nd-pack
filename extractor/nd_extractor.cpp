@@ -9,6 +9,8 @@
 #include "Shlobj.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/exception/diagnostic_information.hpp> 
+#include <boost/exception/enable_error_info.hpp>
 #define LIBARCHIVE_STATIC
 extern "C" 
 {
@@ -327,10 +329,10 @@ bool strIsPrefixed(const wstring& str,const wstring& prefix)
 	}
 	return str.compare(0,prefix.length(),prefix)==0;
 }
-__int64 extract(int fd,__int64 startOffset,__int64 endOffset ,const wstring &toDir,const wstring& glob,bool printProgress)
+__int64 extract(int fd,__int64 startOffset,__int64 endOffset ,const wstring &toDir,const wstring& prefix,bool printProgress)
 {
 	
-	LOG_DEBUG(L"Extracting block... %s",glob.c_str());
+	LOG_DEBUG(L"Extracting block... %s", prefix.c_str());
 	
 	
 	
@@ -369,7 +371,7 @@ __int64 extract(int fd,__int64 startOffset,__int64 endOffset ,const wstring &toD
 			return false;	
 		}
 		wstring path(archive_entry_pathname_w(entry));
-		if(!strIsPrefixed(path,glob))
+		if(!strIsPrefixed(path, prefix))
 		{
 			continue;
 		}
@@ -418,11 +420,15 @@ __int64 extract(int fd,__int64 startOffset,__int64 endOffset ,const wstring &toD
 		}
 
 		wstring path(archive_entry_pathname_w(entry));
-		if(!strIsPrefixed(path,glob))
+		if(!strIsPrefixed(path, prefix))
 		{
 			continue;
 		}
-
+		//remove prefix and dir seperator:
+		if (prefix != L"")
+		{
+			path = path.substr(prefix.length() + 1);
+		}
 		wstring s=normailizedToDir;
 		s+=path;
 		LOG_DEBUG(L"Setting old name %s to %s",path.c_str(),s.c_str());
@@ -472,33 +478,7 @@ __int64 extract(int fd,__int64 startOffset,__int64 endOffset ,const wstring &toD
 	
 	return true;
 }
-/*
-bool getExecutableName(wstring &dir,wstring &out)
-{
-	wstring line;
-	ifstream myfile (dir +L".duck");
-	if (myfile.is_open())
-	{
-		DWORD ver;
-		DWORD len;
-		myfile.read((char*)&ver,sizeof(ver));
-		myfile.read((char*)&len,sizeof(len));	
-		if(len==0)
-		{
-			out=L"";
-		}
-		else
-		{
-			ScopedArrVar<wchar_t> execLine(new wchar_t[len]);
-			myfile.read((char*)(execLine.get()),len*sizeof(wchar_t));
-			out=wstring(execLine.get(),len);
-		}
-		myfile.close();
-	}
-	return true;
 
-}
-*/
 bool spawnInstallerProcess(wstring &exePath )
 {
 
@@ -610,7 +590,7 @@ bool extractFromBlock2(const int selfFileHandle,__int64 startOffset,__int64 endO
 	}
 	return 0;
 }
-#define moduleDbg L"C:\\ws\\packingws\\out.exe"
+//#define moduleDbg L"C:\\ws\\nd-proj\\build\\out.exe"
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow){
 	LOG_DEBUG(L"Extractor started");//not logged currently because logger isnt set yet
@@ -716,7 +696,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		}
 		else
 		{
-			if(SetEnvironmentVariable(L"DUCK_EXE",path)==0)
+			if(SetEnvironmentVariable(L"ND_SFX_EXE",path)==0)
 			{
 				LOG_ERROR(L"Could not set exe var %s",GetLastErrorStdStrW().c_str());
 				return -1;
@@ -726,15 +706,29 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			char buf[2048] = { 0 };
 			_lseek(selfFileHandle, desc.varDescOffset, SEEK_SET);
 			_read(selfFileHandle, (char*)&buf, endOfDesc - desc.varDescOffset);
+			std::string json(buf, endOfDesc - desc.varDescOffset);
+			std::istringstream is(json);
+
 			//string s(buf);
 			//exeCmd = wstring(s.begin(), s.end());
 			boost::property_tree::ptree pt;
-			boost::property_tree::read_json(imemstream(buf, 2048), pt);
-			exeCmd = pt.get<std::string>("run");
+			try
+			{
+				boost::property_tree::read_json(is, pt);
+				exeCmd = pt.get<std::string>("run");
+			}
+			catch (boost::exception & e)
+			{
+				
+				LOG_ERROR(L"read_json error:", boost::diagnostic_information(e));
+				return -1;
+			}
+			
 			
 			if(extractAndRunBlock1(selfFileHandle,desc.block1Offset,desc.block2Offset, exeCmd))
 			{
 				LOG_ERROR(L"Could not extract block1");
+				return -1;
 			}
 		}
 	}
