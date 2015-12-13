@@ -136,7 +136,7 @@ void Logger::log(bool onlyVerbose,const wchar_t* format, ...)
 	va_start(argptr, format);
 	vswprintf(buffer, 2048, format, argptr);
 	va_end(argptr);
-
+	std::wcout << buffer << L"\n";
 	(*outLog) << buffer << L"\n";
 	outLog->flush();
 };
@@ -334,8 +334,6 @@ __int64 extract(int fd,__int64 startOffset,__int64 endOffset ,const wstring &toD
 	
 	LOG_DEBUG(L"Extracting block... %s", prefix.c_str());
 	
-	
-	
 	wstring normailizedToDir= NormalizeDirPath(toDir);
 	struct archive *inArch;
 	struct archive *outArch;
@@ -432,39 +430,78 @@ __int64 extract(int fd,__int64 startOffset,__int64 endOffset ,const wstring &toD
 		wstring s=normailizedToDir;
 		s+=path;
 		LOG_DEBUG(L"Setting old name %s to %s",path.c_str(),s.c_str());
+		if (printProgress)
+		{
+			wprintf(L"Writing file: %s\n", s.c_str());
+		}
 		archive_entry_copy_pathname_w ( entry, s.c_str() );
 		bool isDir=archive_entry_filetype(entry)&AE_IFDIR==0;
-		
-		r = archive_write_header(outArch, entry);
-		if (r < ARCHIVE_OK)
+
+		bool retry = true;
+		while (retry)
 		{
-			Logger::logger.logCstr(true,L"archive_write_header returned ",archive_error_string(outArch));
-			//return false;	
-		}
-		else if (!isDir) 
-		{
-			r = copy_data(inArch, outArch);
-			if (r ==false)
+			retry = false;
+			r = archive_write_header(outArch, entry);
+			if (r < ARCHIVE_OK)
 			{
-				return false;
+
+				if (printProgress)
+				{
+					wchar_t answer = L'i';
+					string err(archive_error_string(outArch));
+					wstring errWide(err.begin(), err.end());
+					wprintf(L"Write error: %s\n", errWide.c_str());
+					wprintf(L"Would you like to (R)etry, (I)gnore or (A)bort?\n");
+					std::cout.flush();
+					wscanf_s(L" %c", &answer,1);
+					if (answer == L'r' || answer == L'R')
+					{
+						retry = true;
+						continue;
+					}
+					else if (answer == L'a' || answer == L'A')
+					{
+						return false;
+					}
+					wprintf(L"ignoring...\n");
+				}
+				Logger::logger.logCstr(true, L"archive_write_header returned ", archive_error_string(outArch));
+				//return false;	
 			}
-			
+			else if (!isDir)
+			{
+				r = copy_data(inArch, outArch);
+				if (r == false)
+				{
+					return false;
+				}
+
+			}
 		}
 		r = archive_write_finish_entry(outArch);
-		if(printProgress)
+		if (printProgress)
 		{
-			wprintf(L"Written %s %s\n",isDir?L"dir":L"file",path.c_str());
-			totalWritten+=archive_entry_size(entry);
-			wprintf(L"Progress %I64u/%I64u\n",totalWritten,totalSize);
+			wprintf(L"Written %s %s\n", isDir ? L"dir" : L"file", path.c_str());
+			totalWritten += archive_entry_size(entry);
+			wprintf(L"Progress %I64u/%I64u\n", totalWritten, totalSize);
 		}
 		if (r < ARCHIVE_WARN)
 		{
-			Logger::logger.logCstr(true,L"archive_write_finish_entry returned error ",archive_error_string(outArch));
-			return false;	
+
+			if (printProgress)
+			{
+				wprintf(L"Write finish fatal error: %s\n", archive_error_string(outArch));
+			}
+			Logger::logger.logCstr(true, L"archive_write_finish_entry returned error ", archive_error_string(outArch));
+			return false;
 		}
 		if (r < ARCHIVE_OK)
 		{
-			Logger::logger.logCstr(true,L"archive_write_finish_entry returned ",archive_error_string(outArch));
+			if (printProgress)
+			{
+				wprintf(L"Write finish error: %s\n", archive_error_string(outArch));
+			}
+			Logger::logger.logCstr(true, L"archive_write_finish_entry returned ", archive_error_string(outArch));
 			//return false;	
 		}
 		
@@ -590,13 +627,23 @@ bool extractFromBlock2(const int selfFileHandle,__int64 startOffset,__int64 endO
 	}
 	return 0;
 }
+
 //#define moduleDbg L"C:\\ws\\nd-proj\\build\\out.exe"
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow){
-	LOG_DEBUG(L"Extractor started");//not logged currently because logger isnt set yet
+
+	
 #ifdef moduleDbg 
+#pragma comment( linker, "/subsystem:console" )
+int wmain(int argc, wchar_t**argv){
+	wstring pCmdLine;
+	for (int i = 0; i < argc; i++)
+	{
+		pCmdLine += L' ';
+		pCmdLine += argv[i];
+	}
 	wchar_t path[MAX_PATH]= moduleDbg;
 #else
+	int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
 	wchar_t path[MAX_PATH];
 	GetModuleFileNameW(NULL, path, MAX_PATH) ;
 #endif
